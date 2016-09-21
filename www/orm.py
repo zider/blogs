@@ -5,7 +5,7 @@ import asyncio
 import logging
 
 def log(sql, args=()):
-    logging.info('SQL: %s'.sql)
+    logging.info('SQL: %s' % sql)
     
 @asyncio.coroutine
 def create_pool(loop, **kw):
@@ -88,7 +88,7 @@ class IntegerField(Field):
         
 class FloatField(Field):
     def __init__(self, name=None, primary_key=False, default=0.0):
-        super().__init__(name=None, 'real', primary_key, default)
+        super().__init__(name, 'real', primary_key, default)
         
 class TextField(Field):
     def __init__(self, name=None, default=None):
@@ -113,8 +113,8 @@ class ModelMetaclass(type):
                 if v.primary_key:
                     if primaryKey:
                         raise StandardError('Duplicate primary key is found at %s' % k)
-                    else：
-                        primaryKey = v
+                    else:
+                        primaryKey = k
                 else:
                     # fields中只保存了属性名
                     fields.append(k)
@@ -140,7 +140,7 @@ class ModelMetaclass(type):
         attrs['__select__'] = 'select `%s`, %s from `%s`' % (primaryKey, ', '.join(escaped_fields), tableName)
         # insert into `User`(`name`, `age`, `id`) values(?, ?, ?)
         # 但是主键不是自增嘛？
-        attrs['__insert__'] = 'insert into `%s`(%s, `%s`) values (%s)' % (tableName, ', '.join(escaped_fields), create_args_string(len(escaped_fields)+1))
+        attrs['__insert__'] = 'insert into `%s`(%s, `%s`) values (%s)' % (tableName, ', '.join(escaped_fields), primaryKey, create_args_string(len(escaped_fields)+1))
         attrs['__update__'] = 'update `%s` set %s where `%s`=?' % (tableName, 
                                 ', '.join(map(lambda i: '`%s`=?' % (mappings.get(i).name or i), fields)),
                                 primaryKey)
@@ -241,6 +241,7 @@ class Model(dict, metaclass=ModelMetaclass):
     @asyncio.coroutine
     def save(self):
         args = list(map(self.getValueOrDefault, self.__fields__))
+        print(self.__primary_key__)
         args.append(self.getValueOrDefault(self.__primary_key__))
         rows = yield from execute(self.__insert__, args)
         if rows != 1:
