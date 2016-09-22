@@ -6,8 +6,9 @@ import asyncio
 import os
 import logging
 import inspect
+import types
 
-from urrlib import parse
+from urllib import parse
 from aiohttp import web
 
 from apis import APIError
@@ -38,7 +39,7 @@ def get_required_kw_args(func):
     params = inspect.signature(func).parameters
     for name, param in params.items():
         # 是关键字参数且没有定义default
-        if param.kind == inspect.Parameter.KEYWORD_ONLY and param.default == inspect.Parameter.empty：
+        if param.kind == inspect.Parameter.KEYWORD_ONLY and param.default == inspect.Parameter.empty:
             args.append(name)
     return tuple(args)
 # 所有关键字参数
@@ -71,7 +72,7 @@ def has_request_arg(func):
             found = True
             continue
         if found and (param.kind in [inspect.Parameter.POSITIONAL_ONLY, inspect.Parameter.POSITIONAL_OR_KEYWORD]):
-            raise ValueError('request parameter must be the last named parameter in function: %s%s' % (fn.__name__, str(sig)))
+            raise ValueError('request parameter must be the last named parameter in function: %s%s' % (func.__name__, str(sig)))
     return found
     
 # 在初始化的时候就传入了参数
@@ -140,7 +141,8 @@ class RequestHandler(object):
             return r
         except APIError as e:
             return dict(error=e.error, data=e.data, message=e.message)
-            
+
+# 这里还不太清楚，反正是添加static文件？            
 def add_static(app):
     path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
     app.router.add_static('/static/', path)
@@ -156,8 +158,8 @@ def add_route(app, func):
         raise ValueError('@get or @post not defined in %s.' % str(func))
     if not asyncio.iscoroutinefunction(func) and not inspect.isgeneratorfunction(func):
         func = asyncio.coroutine(func)
-    logging.info('add route %s %s => %s(%s)' % (method, path, fn.__name__, ', '.join(inspect.signature(fn).parameters.keys())))
-    app.route.add_route(method, path, RequestHandler(app, func))
+    logging.info('add route %s %s => %s(%s)' % (method, path, func.__name__, ', '.join(inspect.signature(func).parameters.keys())))
+    app.router.add_route(method, path, RequestHandler(app, func))
     
 def add_routes(app, module_name):
     n = module_name.rfind('.')

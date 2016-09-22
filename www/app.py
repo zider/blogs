@@ -9,6 +9,7 @@ from jinja2 import Environment, FileSystemLoader
 
 import orm
 from coroweb import add_routes, add_static
+from config import configs
 
 def index(request):
     return web.Response(body=b'<h1>My Blogs</h1>')
@@ -117,12 +118,12 @@ def date_filter(ts):
     
 @asyncio.coroutine
 def init(loop):
-    yield from orm.create_pool(loop=loop, user='root', pwd='1990129', db='awesome')
+    yield from orm.create_pool(loop=loop, user=configs.db.user, pwd=configs.db.password, db=configs.db.db)
     app = web.Application(loop=loop, middlewares=[logger_factory, data_factory, response_factory])
     init_jinja2(app, filters=dict(datetime=date_filter))
     add_routes(app, 'handlers')
     add_static(app)
-    app.router.add_route('GET', '/', index)
+    #app.router.add_route('GET', '/', index)
     srv = yield from loop.create_server(app.make_handler(), '127.0.0.1', 9000)
     logging.info('server starting...')
     return srv
