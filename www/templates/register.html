@@ -1,0 +1,111 @@
+{% extends '__base__.html' %}
+
+{% block title %}Register{% endblock %}
+
+{% block beforehead %}
+<script>
+    function validateEmail(email){
+        var re = /^[a-z0-9\.\-\_]+\@[a-z0-9\-\_]+(\.[a-z0-9\-\_]+){1,4}$/;
+        return re.test(email.toLowerCase());
+    }
+    
+$(function(){
+    new Vue({
+        el: '#vm',
+        data: {
+            name: '',
+            email: '',
+            password1: '',
+            password2: '',
+            isVue: 'Vue is worded.',
+        },
+        methods: {
+            submit: function(event){
+                event.preventDefault();
+                
+                var $form = $('#vm');
+                var email = this.email.trim().toLowerCase();
+                if (!this.name.trim()){
+                    
+                    return $form.showFormError('Please enter the user name!');
+                }
+                if (!validateEmail(email)){
+                    return $form.showFormError('Please enter the correct email address!')
+                }
+                if (this.password1.length < 6){
+                    return $form.showFormError('Please ensure the password\'s length more than 6!')
+                }
+                if (this.password1 !== this.password2){
+                    return $form.showFormError('Please ensure the two password is same!')
+                }
+                
+                $form.postJSON('/api/users', {
+                    name: this.name.trim(),
+                    email: email,
+                    passwd: CryptoJS.SHA1(email + ':' + this.password1).toString()
+                }, function (err, r) {
+                    if (err) {
+                        return $form.showFormError(err);
+                    }
+                    return location.assign('/');
+                });
+            }
+        },
+    });
+    $('#vm').show();
+    new Vue({
+        el: '#vmm',
+        data: {
+            isVue: 'vue is worded.',
+        },
+    });
+});
+</script>
+{% endblock %}
+
+{% block content %}
+<div class='uk-width-2-3'>
+    <h1>Welcome Register</h1>
+    <form id='vm' v-on:submit="submit" class='uk-form uk-form-stacked'>
+        <div class='uk-alert uk-alert-danger uk-hidden'></div>
+        <div id='vmm'><p>{{ isVue }}</p></div>
+        <div class='uk-form-row'>
+            <label class='uk-form-label'>Name:</label>
+            <div class='uk-form-controls'>
+                <input type='text' v-model='name' maxlength='50' placeholder='Name' class='uk-width-1-1'>
+            </div>
+        </div>
+        <div class="uk-form-row">
+                <label class="uk-form-label">Email:</label>
+                <div class="uk-form-controls">
+                    <input v-model="email" type="text" maxlength="50" placeholder="your-name@example.com" class="uk-width-1-1">
+                </div>
+            </div>
+            <div class="uk-form-row">
+                <label class="uk-form-label">Password:</label>
+                <div class="uk-form-controls">
+                    <input v-model="password1" type="password" maxlength="50" placeholder="输入口令" class="uk-width-1-1">
+                </div>
+            </div>
+            <div class="uk-form-row">
+                <label class="uk-form-label">PasswdAgain:</label>
+                <div class="uk-form-controls">
+                    <input v-model="password2" type="password" maxlength="50" placeholder="重复口令" class="uk-width-1-1">
+                </div>
+            </div>
+            
+            <div class="uk-form-row uk-grid">
+                <div class='uk-width-1-2'><button type="submit" class="uk-button uk-button-primary"><i class="uk-icon-user"></i> 注册</button></div>
+                <div class='uk-width-1-2'><button type="reset" class="uk-button uk-button-primary"><i class="uk-icon-user"></i> reset</button></div>
+            </div>
+            <div class='uk-form-row' id='buttontest'>
+                <button onclick="test()">test</button>
+            </div>
+            <script>
+                function test(){
+                    alert('run');
+                }
+            </script>
+        </form>
+</div>
+{% endblock %}

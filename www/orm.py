@@ -212,9 +212,10 @@ class Model(dict, metaclass=ModelMetaclass):
                 args.append(limit)
             elif isinstance(limit, tuple) and len(limit) == 2:
                 sql.append('?, ?')
-                args.append(limit)
+                args.extend(limit)
             else:
                 raise ValueError('Invalid limit value: %s' % str(limit))
+        print('select: %s \n args: %s' % (' '.join(sql), args))
         rs = yield from select(' '.join(sql), args)
         return [cls(**r) for r in rs]
         

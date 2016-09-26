@@ -1,10 +1,29 @@
 <!DOCTYPE html>
 <html>
-<head><title>{{ users[0].name }}'s Blogs!</title></head>
+<head>
+<title><!--'s Blogs!--></title>
+<script src='/static/js/vue.js'></script>
+</head>
 <body>
     <h1>All users</h1>
-    {% for u in users %}
-    <p> {{ u.name }} / {{ u.email }} </p>
+    {% if users %}
+    <ul class=''>
+    {% for user in users %}
+    <li>username: {{{ user.name }}, userid: {{{ user.id }}, email: {{{ user.email }}</li>
     {% endfor %}
+    </ul>
+    {% endif %}
+    
+    <div id="app" class="demo">
+<p>{{ message }}</p>
+</div>
+<script>
+new Vue({
+  el: '#app',
+  data: {
+    message: 'Hello Vue.js!'
+  }
+})
+</script>
 </body>
 </html>
